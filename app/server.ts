@@ -7,6 +7,9 @@ import methodOverride from 'method-override';
 import { RedisClient } from 'redis';
 import session from 'express-session';
 import s from 'connect-redis';
+import setDatabaseConfigurations from './config/database';
+import errorHandler from './utils/errorHandler';
+import UserController from './controllers/user';
 
 /**
  * The server class.
@@ -37,6 +40,7 @@ export default class Server {
         this.app = express();
         this.configureAppEnvironmentAndMiddlewares();
         this.configureAppRoutes();
+        this.app.use(errorHandler);
         // Run the application
         const PORT = process.env.PORT || 3500;
         this.server = this.app.listen(PORT, () => {
@@ -56,6 +60,8 @@ export default class Server {
         else {
             await dotenv.config();
         }
+
+        await setDatabaseConfigurations();
 
         // CORS
         this.app.use((req: Request, res: Response, next: NextFunction) => {
@@ -81,7 +87,7 @@ export default class Server {
      * Routes configuration
      */
     private configureAppRoutes(): void {
-        
+        this.app.use('/users', UserController);
     }
 
     /**
