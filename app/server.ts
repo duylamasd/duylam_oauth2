@@ -4,12 +4,14 @@ import dotenv from 'dotenv';
 import express, { Request, Response, NextFunction } from 'express';
 import * as http from 'http';
 import methodOverride from 'method-override';
+import passport from './config/passport';
 import { RedisClient } from 'redis';
 import session from 'express-session';
 import s from 'connect-redis';
 import setDatabaseConfigurations from './config/database';
 import errorHandler from './utils/errorHandler';
 import UserController from './controllers/user';
+import AuthController from './controllers/auth';
 
 /**
  * The server class.
@@ -39,8 +41,6 @@ export default class Server {
         this.isTest = isTest;
         this.app = express();
         this.configureAppEnvironmentAndMiddlewares();
-        this.configureAppRoutes();
-        this.app.use(errorHandler);
         // Run the application
         const PORT = process.env.PORT || 3500;
         this.server = this.app.listen(PORT, () => {
@@ -63,6 +63,11 @@ export default class Server {
 
         await setDatabaseConfigurations();
 
+        /**
+         * The redis store.
+         */
+        const RedisStore: s.RedisStore = s(session);
+
         // CORS
         this.app.use((req: Request, res: Response, next: NextFunction) => {
             res.setHeader('Access-Control-Allow-Origin', '*');
@@ -78,16 +83,37 @@ export default class Server {
         });
 
         // Express parsers
-        this.app.use(bodyParser.json());
-        this.app.use(bodyParser.urlencoded({ extended: true }));
-        this.app.use(methodOverride());
+        await this.app.use(bodyParser.json());
+        await this.app.use(bodyParser.urlencoded({ extended: true }));
+        await this.app.use(methodOverride());
+        await this.app.use(session({
+            resave: true,
+            saveUninitialized: true,
+            secret: 'my_secret',
+            store: new RedisStore({
+                client: new RedisClient({
+                    host: '127.0.0.1',
+                    port: 6379
+                }),
+                host: '127.0.0.1',
+                port: 6379
+            })
+        }));
+        await this.app.use(passport.initialize());
+        await this.app.use(passport.session());
+
+        await this.configureAppRoutes();
+
+        // Error handler
+        await this.app.use(errorHandler);
     }
 
     /**
      * Routes configuration
      */
-    private configureAppRoutes(): void {
-        this.app.use('/users', UserController);
+    private async configureAppRoutes(): Promise<void> {
+        await this.app.use('/auth', AuthController);
+        await this.app.use('/users', UserController);
     }
 
     /**

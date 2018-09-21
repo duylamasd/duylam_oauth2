@@ -3,8 +3,8 @@ import { Request, Response, NextFunction } from 'express';
 import fs from 'fs';
 import passport from 'passport';
 import passportJwt from 'passport-jwt';
-import passportLocal from 'passport-local';
-import User, { IUserModel } from '../models/user';
+import passportLocal, { IVerifyOptions } from 'passport-local';
+import User, { IUserModel, UserModel } from '../models/user';
 import { ServerError } from '../utils/errorHandler';
 import { HttpStatus } from '../enumtypes';
 import { ObjectId } from 'mongodb';
@@ -26,7 +26,7 @@ const ExtractJWT = passportJwt.ExtractJwt;
 
 passport.serializeUser((
     user: IUserModel,
-    done: (error: any, user?: string) => void
+    done: (error: any, user?: ObjectId) => void
 ) => {
     return done(undefined, user._id);
 });
@@ -38,7 +38,7 @@ passport.deserializeUser(async (
     let user = await User.findById(id, { _id: 0, password: 0 });
     if (!user) {
         return done(new ServerError(
-            'Not found',
+            'USER_NOT_FOUND',
             `User ${id} not found`,
             HttpStatus.NotFound
         ));
@@ -46,41 +46,6 @@ passport.deserializeUser(async (
 
     return done(undefined, user);
 });
-
-passport.use(new LocalStrategy(
-    async (
-        user: string,
-        password: string,
-        done: (error?: ServerError, user?: IUserModel) => void
-    ) => {
-        let userInfo = await User.findOne({
-            $or: [
-                { username: user },
-                { email: user },
-                { phone: user }
-            ]
-        });
-
-        if (!userInfo) {
-            return done(new ServerError(
-                'USER_NOT_FOUND',
-                `User ${user} not found`,
-                HttpStatus.NotFound
-            ));
-        }
-
-        let isPasswordMatch = await userInfo.comparePassword(password);
-        if (!isPasswordMatch) {
-            return done(new ServerError(
-                'INVALID_USER',
-                'Invalid user or password',
-                HttpStatus.Unauthorized
-            ));
-        }
-
-        return done(undefined, userInfo);
-    }
-));
 
 passport.use(new JwtStrategy(
     {
@@ -97,16 +62,60 @@ passport.use(new JwtStrategy(
     },
     (
         payload: IUserModel | undefined | null,
-        done: (error?: ServerError, user?: IUserModel, info?: any) => void
+        done: (error: any, user?: any, info?: IVerifyOptions) => void
     ) => {
         if (!payload) {
-            return done(new ServerError(
-                'Unauthorized',
-                'Invalid token',
-                HttpStatus.Unauthorized
-            ));
+            return done(undefined, undefined, { message: 'Invalid token' });
         }
 
         return done(undefined, payload);
     }
 ));
+
+/**
+ * Autnentication middleware.
+ * @param {string[]} strategies Authentication strategies
+ */
+export let authentication = (strategies: string[]) => {
+    return (req: Request, res: Response, next: NextFunction) => {
+        passport.authenticate(
+            strategies,
+            { session: false },
+            (error: any, user?: UserModel, info?: any) => {
+                if (error) {
+                    return next(error);
+                }
+
+                if (!user) {
+                    return next(new ServerError(
+                        'UNAUTHORIZED',
+                        info ? info.message ? info.message : 'Unauthorized' : 'Unauthorized',
+                        HttpStatus.Unauthorized
+                    ));
+                }
+
+                return next();
+            }
+        )(req, res, next);
+    };
+}
+
+/**
+ * Login required middleware
+ */
+export let isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+    if (req.isAuthenticated()) {
+        return next();
+    }
+
+    return next(new ServerError(
+        'UNAUTHENTICATED',
+        'Unauthenticated',
+        HttpStatus.Unauthorized
+    ));
+}
+
+/**
+ * export the passport
+ */
+export default passport;
