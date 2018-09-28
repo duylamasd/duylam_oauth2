@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { HttpStatus } from '../enumtypes';
-import { authentication } from '../config/passport';
+import passport, { ensureAuthenticated } from '../config/passport';
 import { ServerError } from '../utils/errorHandler';
 import User from '../models/user';
 
@@ -26,6 +26,15 @@ UserController.post(
         }
 
         return res.sendStatus(HttpStatus.Created);
+    }
+);
+
+UserController.get(
+    '/',
+    passport.authenticate(['jwt', 'headerapikey']),
+    ensureAuthenticated,
+    (req: Request, res: Response, next: NextFunction) => {
+        return res.send('OK');
     }
 );
 

@@ -1,6 +1,8 @@
 import mongoose, { Document, Model } from 'mongoose';
 import bcrypt from 'bcrypt';
 import { NextFunction } from 'express';
+import { ServerError } from '../utils/errorHandler';
+import { HttpStatus } from '../enumtypes';
 
 /**
  * Round for generate salt on hashing password.
@@ -26,16 +28,16 @@ type comparePasswordFunction = (candidatePassword: string) => Promise<boolean>;
  * UserModel data type.
  */
 export type UserModel = Document & {
-    username: string,
-    email: string,
-    phone: string,
-    password: string,
+    username: String,
+    email: String,
+    phone: String,
+    password: String,
     profile: {
-        firstname: string,
-        lastname: string,
-        gender: string,
-        address: string,
-        picture?: string
+        firstname: String,
+        lastname: String,
+        gender: String,
+        address: String,
+        picture?: String
     }
 };
 
@@ -43,16 +45,16 @@ export type UserModel = Document & {
  * UserModel Interface
  */
 export interface IUserModel extends Document {
-    username: string;
-    email: string;
-    phone: string;
-    password: string;
+    username: String;
+    email: String;
+    phone: String;
+    password: String;
     profile: {
-        firstname: string;
-        lastname: string;
-        gender: string;
-        address: string;
-        picture?: string;
+        firstname: String;
+        lastname: String;
+        gender: String;
+        address: String;
+        picture?: String;
     };
 
     comparePassword: comparePasswordFunction;
@@ -73,7 +75,7 @@ var UserSchema = new mongoose.Schema({
         address: String,
         picture: { type: String, undefined: true }
     }
-}, { timestamps: true });
+}, { timestamps: true, versionKey: false });
 
 /**
  * Password hash
@@ -87,7 +89,11 @@ UserSchema.pre('save', async function save(next: NextFunction) {
         return next();
     }
 
-    return next('Failed on saving password');
+    return next(new ServerError(
+        'SAVE_PASSWORD_FAILED',
+        'Failed while saving password',
+        HttpStatus.InternalServerError
+    ));
 });
 
 /**
