@@ -13,6 +13,7 @@ import errorHandler from './utils/errorHandler';
 import AuthController from './controllers/auth';
 import CredentialController from './controllers/credential';
 import UserController from './controllers/user';
+import env from './config/environment';
 
 /**
  * The server class.
@@ -43,7 +44,7 @@ export default class Server {
         this.app = express();
         this.configureAppEnvironmentAndMiddlewares();
         // Run the application
-        const PORT = process.env.PORT || 3500;
+        const PORT = env.port;
         this.server = this.app.listen(PORT, () => {
             if (process.env.NODE_ENV !== 'test')
                 console.log(`Server started on port ${PORT}`);
@@ -54,14 +55,6 @@ export default class Server {
      * Configure the application environment and middlewares.
      */
     private async configureAppEnvironmentAndMiddlewares(): Promise<void> {
-        // Environment configurations.
-        if (this.isTest) {
-            await dotenv.config({ path: '.env.test' });
-        }
-        else {
-            await dotenv.config();
-        }
-
         await setDatabaseConfigurations();
 
         /**
