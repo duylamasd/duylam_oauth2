@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import env from './environment';
 
 /**
  * The database connect options.
@@ -20,15 +21,21 @@ mongoose.Promise = global.Promise;
  * Set database configurations
  */
 const setDatabaseConfigurations = async () => {
-    let dbUsername: string | undefined = process.env.DB_USERNAME;
-    let dbPassword: string | undefined = process.env.DB_PASSWORD;
-    let dbName: string | undefined = process.env.DB_NAME;
-    let dbURI: string | undefined = process.env.MONGODB_URI;
+    let dbUsername: string | undefined = env.dbUsername;
+    let dbPassword: string | undefined = env.dbPassword;
+    let dbName: string | undefined = env.dbName;
+    let dbUri: string | undefined = env.dbUri;
 
     await mongoose.connect(
-        `mongodb://${dbUsername}:${dbPassword}@${dbURI}/${dbName}`,
+        `mongodb://${dbUsername}:${dbPassword}@${dbUri}/${dbName}`,
         connectOptions
-    );
+    ).then(res => {
+        console.log('Connect to database successfully');
+    }).catch(err => {
+        console.log('Database connection failed');
+        console.log(err);
+        process.exit(1);
+    });
 }
 
 export default setDatabaseConfigurations;
