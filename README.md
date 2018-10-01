@@ -1,16 +1,16 @@
 # duylam_oauth2
 Written by Cao Duy Lâm
 
-This project uses passportjs package for authentication and authorization.
+This project uses [Passportjs](http://www.passportjs.org/) package for authentication and authorization.
 
 ## Databases, services
-- MongoDB
-- Redis
+- [MongoDB](https://www.mongodb.com/)
+- [Redis](https://redis.io/)
 
 ## Framework, programming language
-- NodeJS
-- Express
-- Typescript
+- [NodeJS](https://nodejs.org/en/)
+- [Express](http://expressjs.com/)
+- [Typescript](https://www.typescriptlang.org/)
 
 ## Authentication stategies (will be update daily)
 - JWT
@@ -18,22 +18,23 @@ This project uses passportjs package for authentication and authorization.
 - Twitter stategy (on going)
 
 ## How to run
-- Install NodeJS
-- Install MongoDB, Redis
-- Create .env file, check .env.example file for details.
+- Install [NodeJS](https://nodejs.org/en/)
+- Install [MongoDB](https://www.mongodb.com/), [Redis](https://redis.io/)
+- Create **.env** file, check **.env.example** file for details.
 - Type *npm start* command to run the project.
 
 ## Dependencies
-- Express
-- express-session
-- body-parser
-- method-override
-- PassportJS
-- Redis
-- Dotenv
-- Mongoose
-- passport-jwt
-- passport-local
-- passport-twitter
-- connect-timeout
-- oauth2orize
+- [Express](https://www.npmjs.com/package/express)
+- [express-session](https://www.npmjs.com/package/express-session)
+- [body-parser](https://www.npmjs.com/package/body-parser)
+- [method-override](https://www.npmjs.com/package/method-override)
+- [PassportJS](https://www.npmjs.com/package/passport)
+- [Redis](https://www.npmjs.com/package/redis)
+- [Dotenv](https://www.npmjs.com/package/dotenv)
+- [Mongoose](https://www.npmjs.com/package/mongoose)
+- [passport-headerapikey](https://www.npmjs.com/package/passport-headerapikey)
+- [passport-jwt](https://www.npmjs.com/package/passport-jwt)
+- [passport-local](https://www.npmjs.com/package/passport-local)
+- [passport-twitter](https://www.npmjs.com/package/passport-twitter)
+- [connect-timeout](https://www.npmjs.com/package/connect-timeout)
+- [oauth2orize](https://www.npmjs.com/package/oauth2orize)
