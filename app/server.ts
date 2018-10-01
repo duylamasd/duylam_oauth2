@@ -10,8 +10,9 @@ import session from 'express-session';
 import s from 'connect-redis';
 import setDatabaseConfigurations from './config/database';
 import errorHandler from './utils/errorHandler';
-import UserController from './controllers/user';
 import AuthController from './controllers/auth';
+import CredentialController from './controllers/credential';
+import UserController from './controllers/user';
 
 /**
  * The server class.
@@ -113,6 +114,7 @@ export default class Server {
      */
     private async configureAppRoutes(): Promise<void> {
         await this.app.use('/auth', AuthController);
+        await this.app.use('/credentials', CredentialController);
         await this.app.use('/users', UserController);
     }
 

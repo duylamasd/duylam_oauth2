@@ -13,55 +13,60 @@ import * as _ from 'lodash';
  */
 var AuthController: Router = Router();
 
+/**
+ * Local authentication.
+ */
 AuthController.post(
     '/login',
     async (req: Request, res: Response, next: NextFunction) => {
-        let [user, password] = [req.body.user, req.body.password];
-        let userInfo = await User.findOne({
-            $or: [
-                { username: user },
-                { email: user },
-                { phone: user }
-            ]
-        });
+        passport.authenticate(
+            'local',
+            { session: false },
+            (error: any, user?: any, info?: any) => {
+                if (error) {
+                    return next(new ServerError(
+                        'UNHANDLED',
+                        info ? info.message ? info.message : 'Unhandled error' : 'Unhandled error',
+                        HttpStatus.InternalServerError
+                    ));
+                }
 
-        if (!userInfo) {
-            return next(new ServerError(
-                'INVALID_USER',
-                `User ${user} is invalid`,
-                HttpStatus.Unauthorized
-            ));
-        }
+                if (!user) {
+                    return next(new ServerError(
+                        'UNAUTHORIZED',
+                        info ? info.message ? info.message : 'Unauthorized' : 'Unauthorized',
+                        HttpStatus.Unauthorized
+                    ));
+                }
 
-        let isPasswordMatch = await userInfo.comparePassword(password);
-        if (!isPasswordMatch) {
-            return next(new ServerError(
-                'INVALID_PASSWORD',
-                'Invalid password',
-                HttpStatus.Unauthorized
-            ));
-        }
+                req.login(user, (error) => {
+                    if (error) {
+                        return next(new ServerError(
+                            'UNAUTHORIZED',
+                            'Unauthorized',
+                            HttpStatus.Unauthorized
+                        ));
+                    }
 
-        const token = jwt.sign(
-            _.omit(userInfo.toJSON(), ['password', 'profile']),
-            fs.readFileSync(getPrivateKey()),
-            {
-                algorithm: 'RS256',
-                issuer: 'duylam',
-                audience: 'duylam',
-                expiresIn: 3600
+                    const token = jwt.sign(
+                        user,
+                        fs.readFileSync(getPrivateKey()),
+                        {
+                            algorithm: 'RS256',
+                            issuer: 'duylam',
+                            audience: 'duylam',
+                            expiresIn: 3600
+                        }
+                    );
+
+                    return res.send({
+                        type: 'Bearer',
+                        token: token,
+                        message: 'OK'
+                    });
+                });
             }
-        );
-
-        if (!token) {
-            return next(new ServerError(
-                'SERVER_ERROR',
-                'Error on creating token',
-                HttpStatus.InternalServerError
-            ));
-        }
-
-        return res.send(token);
+        )(req, res, next);
     }
 )
 
