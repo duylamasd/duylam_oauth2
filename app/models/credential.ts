@@ -32,7 +32,7 @@ export interface ICredentialModel extends Document {
     scopes?: String[],
     expireTime: Date,
 
-    isValid: () => Promise<boolean>
+    isExpired: () => Promise<boolean>
 };
 
 /**
@@ -53,7 +53,7 @@ var CredentialSchema = new mongoose.Schema({
 /**
  * Check whether credential is valid by expire time 
  */
-CredentialSchema.methods.isValid = async function () {
+CredentialSchema.methods.isExpired = async function () {
     let now = new Date().getTime();
     let expireTime = new Date(this.expireTime).getTime();
 
