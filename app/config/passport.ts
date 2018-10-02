@@ -27,6 +27,11 @@ const JwtStrategy = passportJwt.Strategy;
  */
 const ExtractJWT = passportJwt.ExtractJwt;
 
+/**
+ * Strings type.
+ */
+type Strings = string | string[];
+
 passport.serializeUser((
     user: IUserModel | ICredentialModel,
     done: (error: any, user?: ObjectId) => void
@@ -138,7 +143,12 @@ passport.use(new HeaderAPIKeyStrategy(
         let credential = await Credential.findOne({ _id: id, secret: secret });
 
         if (!credential) {
-            return done(null, false);
+            return done(null, false, { message: 'Invalid apikey' });
+        }
+
+        let isCredentialValid = await credential.isExpired();
+        if (!isCredentialValid) {
+            return done(null, false, { message: 'Apikey expired' });
         }
 
         let authData = Object.assign(
@@ -149,6 +159,48 @@ passport.use(new HeaderAPIKeyStrategy(
         return done(null, authData);
     }
 ));
+
+/**
+ * Passport authentication middleware
+ * @param {Strings} strat Strategy/strategies for authorization.
+ */
+export const authenticatePassport = (strat: Strings) => {
+    return (req: Request, res: Response, next: NextFunction) => {
+        passport.authenticate(
+            strat,
+            { session: false },
+            (error: any, user?: any, info?: any) => {
+                if (error) {
+                    return next(new ServerError(
+                        'UNHANDLED',
+                        info ? info[1].message ? info[1].message : 'Unhandled error' : 'Unhandled error',
+                        HttpStatus.InternalServerError
+                    ));
+                }
+
+                if (!user) {
+                    return next(new ServerError(
+                        'UNAUTHORIZED',
+                        info ? info[1].message ? info[1].message : 'Unauthorized' : 'Unauthorized',
+                        HttpStatus.Unauthorized
+                    ));
+                }
+
+                req.login(user, error => {
+                    if (error) {
+                        return next(new ServerError(
+                            'UNAUTHORIZED',
+                            'Unauthorized',
+                            HttpStatus.Unauthorized
+                        ));
+                    }
+
+                    return next();
+                });
+            }
+        )(req, res, next);
+    };
+}
 
 /**
  * Ensure session is authenticated

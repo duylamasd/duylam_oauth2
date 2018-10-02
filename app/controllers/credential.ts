@@ -3,7 +3,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { HttpStatus } from '../enumtypes';
 import { ServerError } from '../utils/errorHandler';
 import Credential from '../models/credential';
-import passport, { ensureAuthenticated } from '../config/passport';
+import passport, { authenticatePassport, ensureAuthenticated } from '../config/passport';
 
 /**
  * Credential controller
@@ -12,7 +12,7 @@ var CredentialController: Router = Router();
 
 CredentialController.post(
     '/',
-    passport.authenticate('jwt'),
+    authenticatePassport('jwt'),
     ensureAuthenticated,
     async (req: Request, res: Response, next: NextFunction) => {
         if (!req.user) {
