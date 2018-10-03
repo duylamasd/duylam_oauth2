@@ -13,29 +13,29 @@ var UserController: Router = Router();
  * Create new user
  */
 UserController.post(
-    '/',
-    async (req: Request, res: Response, next: NextFunction) => {
-        let user = await User.create(req.body);
+  '/',
+  async (req: Request, res: Response, next: NextFunction) => {
+    let user = await User.create(req.body);
 
-        if (!user) {
-            return next(new ServerError(
-                'CREATE_USER_FAILED',
-                'Can not create this user',
-                HttpStatus.InternalServerError
-            ));
-        }
-
-        return res.sendStatus(HttpStatus.Created);
+    if (!user) {
+      return next(new ServerError(
+        'CREATE_USER_FAILED',
+        'Can not create this user',
+        HttpStatus.InternalServerError
+      ));
     }
+
+    return res.sendStatus(HttpStatus.Created);
+  }
 );
 
 UserController.get(
-    '/',
-    authenticatePassport(['jwt', 'headerapikey']),
-    ensureAuthenticated,
-    (req: Request, res: Response, next: NextFunction) => {
-        return res.send('OK');
-    }
+  '/',
+  authenticatePassport(['jwt', 'headerapikey']),
+  ensureAuthenticated,
+  (req: Request, res: Response, next: NextFunction) => {
+    return res.send('OK');
+  }
 );
 
 export default UserController;

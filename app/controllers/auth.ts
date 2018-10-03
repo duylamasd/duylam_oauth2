@@ -17,57 +17,57 @@ var AuthController: Router = Router();
  * Local authentication.
  */
 AuthController.post(
-    '/login',
-    async (req: Request, res: Response, next: NextFunction) => {
-        passport.authenticate(
-            'local',
-            { session: false },
-            (error: any, user?: any, info?: any) => {
-                if (error) {
-                    return next(new ServerError(
-                        'UNHANDLED',
-                        info ? info.message ? info.message : 'Unhandled error' : 'Unhandled error',
-                        HttpStatus.InternalServerError
-                    ));
-                }
+  '/login',
+  async (req: Request, res: Response, next: NextFunction) => {
+    passport.authenticate(
+      'local',
+      { session: false },
+      (error: any, user?: any, info?: any) => {
+        if (error) {
+          return next(new ServerError(
+            'UNHANDLED',
+            info ? info.message ? info.message : 'Unhandled error' : 'Unhandled error',
+            HttpStatus.InternalServerError
+          ));
+        }
 
-                if (!user) {
-                    return next(new ServerError(
-                        'UNAUTHORIZED',
-                        info ? info.message ? info.message : 'Unauthorized' : 'Unauthorized',
-                        HttpStatus.Unauthorized
-                    ));
-                }
+        if (!user) {
+          return next(new ServerError(
+            'UNAUTHORIZED',
+            info ? info.message ? info.message : 'Unauthorized' : 'Unauthorized',
+            HttpStatus.Unauthorized
+          ));
+        }
 
-                req.login(user, (error) => {
-                    if (error) {
-                        return next(new ServerError(
-                            'UNAUTHORIZED',
-                            'Unauthorized',
-                            HttpStatus.Unauthorized
-                        ));
-                    }
+        req.login(user, (error) => {
+          if (error) {
+            return next(new ServerError(
+              'UNAUTHORIZED',
+              'Unauthorized',
+              HttpStatus.Unauthorized
+            ));
+          }
 
-                    const token = jwt.sign(
-                        user,
-                        fs.readFileSync(getPrivateKey()),
-                        {
-                            algorithm: 'RS256',
-                            issuer: 'duylam',
-                            audience: 'duylam',
-                            expiresIn: 3600
-                        }
-                    );
-
-                    return res.send({
-                        type: 'Bearer',
-                        token: token,
-                        message: 'OK'
-                    });
-                });
+          const token = jwt.sign(
+            user,
+            fs.readFileSync(getPrivateKey()),
+            {
+              algorithm: 'RS256',
+              issuer: 'duylam',
+              audience: 'duylam',
+              expiresIn: 3600
             }
-        )(req, res, next);
-    }
+          );
+
+          return res.send({
+            type: 'Bearer',
+            token: token,
+            message: 'OK'
+          });
+        });
+      }
+    )(req, res, next);
+  }
 )
 
 export default AuthController;
