@@ -32,8 +32,8 @@ const setDatabaseConfigurations = async () => {
   ).then(res => {
     console.log('Connect to database successfully');
   }).catch(err => {
-    console.log('Database connection failed');
-    console.log(err);
+    console.error('Database connection failed');
+    console.error(err);
     process.exit(1);
   });
 }
