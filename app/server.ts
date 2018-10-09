@@ -1,14 +1,16 @@
 import bodyParser from 'body-parser';
-import cookieParser from 'cookie-parser';
-import dotenv from 'dotenv';
+import compression from 'compression';
 import express, { Request, Response, NextFunction } from 'express';
-import * as http from 'http';
+import fs from 'fs';
+import https from 'https';
 import methodOverride from 'method-override';
 import passport from './config/passport';
 import { RedisClient } from 'redis';
 import session from 'express-session';
 import s from 'connect-redis';
+import spdy from 'spdy';
 import setDatabaseConfigurations from './config/database';
+import path from 'path';
 import errorHandler from './utils/errorHandler';
 import AuthController from './controllers/auth';
 import CredentialController from './controllers/credential';
@@ -28,7 +30,7 @@ export default class Server {
   /**
    * The server
    */
-  private server: http.Server;
+  private server: https.Server;
 
   /**
    * Determine server is running in test mode or not.
@@ -45,9 +47,20 @@ export default class Server {
     this.configureAppEnvironmentAndMiddlewares();
     // Run the application
     const PORT = env.port;
-    this.server = this.app.listen(PORT, () => {
-      if (process.env.NODE_ENV !== 'test')
-        console.log(`Server started on port ${PORT}`);
+    this.server = spdy.createServer(
+      {
+        key: fs.readFileSync(path.join(__dirname, '../') + '/server.key'),
+        cert: fs.readFileSync(path.join(__dirname, '../') + '/server.crt')
+      },
+      this.app
+    ).listen(PORT, (err: any) => {
+      if (err) {
+        console.error('Create server failed');
+        console.error(err);
+        process.exit(1);
+      }
+
+      console.log(`Listening on port: ${PORT}`);
     });
   }
 
@@ -80,6 +93,7 @@ export default class Server {
     await this.app.use(bodyParser.json());
     await this.app.use(bodyParser.urlencoded({ extended: true }));
     await this.app.use(methodOverride());
+    await this.app.use(compression());
     await this.app.use(session({
       resave: true,
       saveUninitialized: true,
@@ -106,6 +120,7 @@ export default class Server {
    * Routes configuration
    */
   private async configureAppRoutes(): Promise<void> {
+    await this.app.get('/healthcheck', (req: Request, res: Response) => { res.send('OK'); });
     await this.app.use('/auth', AuthController);
     await this.app.use('/credentials', CredentialController);
     await this.app.use('/users', UserController);
