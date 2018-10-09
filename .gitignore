@@ -2,4 +2,7 @@ node_modules/
 *.log
 *.env
 *.pem
+*.crt
+*.csr
+*.key
 build/
