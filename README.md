@@ -26,8 +26,10 @@ This project uses [Passportjs](http://www.passportjs.org/) package for authentic
 ## Dependencies
 - [Express](https://www.npmjs.com/package/express)
 - [express-session](https://www.npmjs.com/package/express-session)
+- [boom](https://www.npmjs.com/package/boom)
 - [body-parser](https://www.npmjs.com/package/body-parser)
 - [method-override](https://www.npmjs.com/package/method-override)
+- [compression](https://www.npmjs.com/package/compression)
 - [PassportJS](https://www.npmjs.com/package/passport)
 - [Redis](https://www.npmjs.com/package/redis)
 - [Dotenv](https://www.npmjs.com/package/dotenv)

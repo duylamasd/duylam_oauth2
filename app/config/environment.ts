@@ -4,7 +4,10 @@ var env = {
   dbUsername: process.env.DB_USERNAME,
   dbPassword: process.env.DB_PASSWORD,
   dbName: process.env.DB_NAME,
-  dbUri: process.env.MONGODB_URI
+  dbUri: process.env.MONGODB_URI,
+  mongoImg: process.env.MONGO_IMG,
+  redisHost: process.env.REDIS_HOST,
+  cookieSecret: process.env.COOKIE_SECRET || 'secret'
 };
 
 export default env;
