@@ -25,9 +25,10 @@ const setDatabaseConfigurations = async () => {
   let dbPassword: string | undefined = env.dbPassword;
   let dbName: string | undefined = env.dbName;
   let dbUri: string | undefined = env.dbUri;
+  let mongoImg: string | undefined = env.mongoImg;
 
   await mongoose.connect(
-    `mongodb://${dbUsername}:${dbPassword}@${dbUri}/${dbName}`,
+    `${mongoImg}://${dbUsername}:${dbPassword}@${dbUri}/${dbName}`,
     connectOptions
   ).then(res => {
     console.log('Connect to database successfully');

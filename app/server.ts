@@ -97,13 +97,13 @@ export default class Server {
     await this.app.use(session({
       resave: true,
       saveUninitialized: true,
-      secret: 'my_secret',
+      secret: env.cookieSecret,
       store: new RedisStore({
         client: new RedisClient({
-          host: '127.0.0.1',
+          host: env.redisHost,
           port: 6379
         }),
-        host: '127.0.0.1',
+        host: env.redisHost,
         port: 6379
       })
     }));
