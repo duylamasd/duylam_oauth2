@@ -68,6 +68,6 @@ AuthController.post(
       }
     )(req, res, next);
   }
-)
+);
 
 export default AuthController;

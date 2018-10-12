@@ -5,8 +5,10 @@ import passport from 'passport';
 import passportJwt from 'passport-jwt';
 import passportLocal, { IVerifyOptions } from 'passport-local';
 import { HeaderAPIKeyStrategy } from 'passport-headerapikey';
+import passportTwitter from 'passport-twitter';
+import env from '../config/environment';
 import Credential, { ICredentialModel } from '../models/credential';
-import User, { IUserModel, UserModel } from '../models/user';
+import User, { IUserModel } from '../models/user';
 import { ServerError } from '../utils/errorHandler';
 import { HttpStatus } from '../enumtypes';
 import { ObjectId } from 'mongodb';
@@ -26,6 +28,11 @@ const JwtStrategy = passportJwt.Strategy;
  * Extract JWT
  */
 const ExtractJWT = passportJwt.ExtractJwt;
+
+/**
+ * Twitter strategy
+ */
+const TwitterStrategy = passportTwitter.Strategy;
 
 /**
  * Strings type.
@@ -157,6 +164,98 @@ passport.use(new HeaderAPIKeyStrategy(
     );
 
     return done(null, authData);
+  }
+));
+
+passport.use(new TwitterStrategy(
+  {
+    consumerKey: env.twitterConsumerKey,
+    consumerSecret: env.twitterConsumerSecret,
+    userProfileURL: 'https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true',
+    includeEmail: true,
+    callbackURL: '/auth/twitter/callback',
+    passReqToCallback: true
+  },
+  async (
+    req: Request,
+    accessToken: string,
+    refreshToken: string,
+    profile: passportTwitter.Profile,
+    done: (error: any, user?: any) => void
+  ) => {
+    if (req.user) {
+      let existingUser = await User.findOne({ twitterId: profile.id });
+      if (existingUser) {
+        return done(undefined);
+      }
+
+      let user = await User.findById(req.user._id);
+      if (!user) {
+        return done(new ServerError(
+          'USER_NOT_FOUND',
+          'User not found',
+          HttpStatus.Unauthorized
+        ));
+      }
+
+      let existingTokenIdx = await user.accessToken.findIndex(token => { return token.kind === 'Twitter' });
+      if (existingTokenIdx < 0) {
+        user.accessToken.push({ kind: 'Twitter', token: accessToken });
+      } else {
+        user.accessToken[existingTokenIdx].token = accessToken;
+      }
+      user.profile.gender = user.profile.gender || profile.gender;
+      user.profile.firstname = user.profile.firstname || (profile.name ? profile.name.givenName : undefined);
+      user.profile.lastname = user.profile.lastname || (profile.name ? `${profile.name.familyName}${profile.name.middleName}` : undefined);
+      user.profile.picture = user.profile.picture || profile._json.profile_image_url_https;
+      user.email = user.email || (profile.emails ? profile.emails[0].value : undefined);
+      let savedUser = await user.save();
+      if (!savedUser) {
+        return done(new ServerError(
+          'AUTHORIZE_FAILED',
+          'Authorize failed',
+          HttpStatus.Unauthorized
+        ));
+      }
+
+      return done(undefined, savedUser);
+    } else {
+      let existingUser = await User.findOne({ twitterId: profile.id });
+      if (existingUser) {
+        return done(undefined, existingUser);
+      }
+
+      let existingUserByEmail = await User.findOne({ email: (profile.emails ? profile.emails[0].value : '') });
+      if (!existingUserByEmail) {
+        return done(new ServerError(
+          'AUTHORIZE_FAILED',
+          'Authorize failed',
+          HttpStatus.Unauthorized
+        ));
+      }
+
+      let existingTokenIdx = await existingUserByEmail.accessToken.findIndex(token => { return token.kind === 'Twitter' });
+      if (existingTokenIdx < 0) {
+        existingUserByEmail.accessToken.push({ kind: 'Twitter', token: accessToken });
+      } else {
+        existingUserByEmail.accessToken[existingTokenIdx].token = accessToken;
+      }
+      existingUserByEmail.profile.gender = existingUserByEmail.profile.gender || profile.gender;
+      existingUserByEmail.profile.firstname = existingUserByEmail.profile.firstname || (profile.name ? profile.name.givenName : undefined);
+      existingUserByEmail.profile.lastname = existingUserByEmail.profile.lastname || (profile.name ? `${profile.name.familyName}${profile.name.middleName}` : undefined);
+      existingUserByEmail.profile.picture = existingUserByEmail.profile.picture || profile._json.profile_image_url_https;
+
+      let savedUser = await existingUserByEmail.save();
+      if (!savedUser) {
+        return done(new ServerError(
+          'AUTHORIZE_FAILED',
+          'Authorize failed',
+          HttpStatus.Unauthorized
+        ));
+      }
+
+      return done(undefined, savedUser);
+    }
   }
 ));
 
