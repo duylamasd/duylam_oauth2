@@ -32,6 +32,11 @@ export type UserModel = Document & {
   email: String,
   phone: String,
   password: String,
+  twitterId: String,
+  accessToken: {
+    kind: String,
+    token: String
+  }[],
   profile: {
     firstname: String,
     lastname: String,
@@ -49,6 +54,11 @@ export interface IUserModel extends Document {
   email: String;
   phone: String;
   password: String;
+  twitterId: String;
+  accessToken: {
+    kind: String;
+    token: String;
+  }[];
   profile: {
     firstname: String;
     lastname: String;
@@ -68,6 +78,11 @@ var UserSchema = new mongoose.Schema({
   email: { type: String, unique: true },
   phone: { type: String, unique: true },
   password: String,
+  twitterId: { type: String, unique: true },
+  accessToken: [{
+    kind: { type: String, enum: ['Facebook', 'Twitter'], undefined: true },
+    token: String
+  }],
   profile: {
     firstname: String,
     lastname: String,

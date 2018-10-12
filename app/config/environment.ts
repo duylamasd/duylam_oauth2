@@ -7,7 +7,9 @@ var env = {
   dbUri: process.env.MONGODB_URI,
   mongoImg: process.env.MONGO_IMG,
   redisHost: process.env.REDIS_HOST,
-  cookieSecret: process.env.COOKIE_SECRET || 'secret'
+  cookieSecret: process.env.COOKIE_SECRET || 'secret',
+  twitterConsumerKey: process.env.TWITTER_CONSUMER_KEY || '',
+  twitterConsumerSecret: process.env.TWITTER_CONSUMER_SECRET || ''
 };
 
 export default env;
