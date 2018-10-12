@@ -2,7 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { HttpStatus } from '../enumtypes';
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
-import passport from '../config/passport';
+import passport, { authenticatePassport } from '../config/passport';
 import { ServerError } from '../utils/errorHandler';
 import { getPrivateKey } from '../utils/certs';
 import User, { UserModel } from '../models/user';
@@ -67,6 +67,22 @@ AuthController.post(
         });
       }
     )(req, res, next);
+  }
+);
+
+AuthController.get(
+  '/twitter',
+  authenticatePassport('twitter'),
+  (req: Request, res: Response, next: NextFunction) => {
+    res.send('OK');
+  }
+);
+
+AuthController.get(
+  '/twitter/callback',
+  authenticatePassport('twitter'),
+  (req: Request, res: Response, next: NextFunction) => {
+    res.send('OK');
   }
 );
 

@@ -207,7 +207,7 @@ passport.use(new TwitterStrategy(
       user.profile.gender = user.profile.gender || profile.gender;
       user.profile.firstname = user.profile.firstname || (profile.name ? profile.name.givenName : undefined);
       user.profile.lastname = user.profile.lastname || (profile.name ? `${profile.name.familyName}${profile.name.middleName}` : undefined);
-      user.profile.picture = user.profile.picture || profile._json.profile_image_url_https;
+      user.profile.picture = user.profile.picture || (profile.photos ? profile.photos[0].value : undefined);
       user.email = user.email || (profile.emails ? profile.emails[0].value : undefined);
       let savedUser = await user.save();
       if (!savedUser) {
@@ -243,7 +243,7 @@ passport.use(new TwitterStrategy(
       existingUserByEmail.profile.gender = existingUserByEmail.profile.gender || profile.gender;
       existingUserByEmail.profile.firstname = existingUserByEmail.profile.firstname || (profile.name ? profile.name.givenName : undefined);
       existingUserByEmail.profile.lastname = existingUserByEmail.profile.lastname || (profile.name ? `${profile.name.familyName}${profile.name.middleName}` : undefined);
-      existingUserByEmail.profile.picture = existingUserByEmail.profile.picture || profile._json.profile_image_url_https;
+      existingUserByEmail.profile.picture = existingUserByEmail.profile.picture || (profile.photos ? profile.photos[0].value : undefined);
 
       let savedUser = await existingUserByEmail.save();
       if (!savedUser) {
@@ -263,11 +263,11 @@ passport.use(new TwitterStrategy(
  * Passport authentication middleware
  * @param {Strings} strat Strategy/strategies for authorization.
  */
-export const authenticatePassport = (strat: Strings) => {
+export const authenticatePassport = (strat: Strings, options?: any) => {
   return (req: Request, res: Response, next: NextFunction) => {
     passport.authenticate(
       strat,
-      { session: false },
+      options,
       (error: any, user?: any, info?: any) => {
         if (error) {
           return next(new ServerError(
