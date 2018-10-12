@@ -15,7 +15,7 @@ This project uses [Passportjs](http://www.passportjs.org/) package for authentic
 ## Authentication stategies (will be update daily)
 - JWT
 - HeaderAPIKey
-- Twitter stategy (on going)
+- Twitter stategy (testing)
 
 ## How to run
 - Install [NodeJS](https://nodejs.org/en/)
