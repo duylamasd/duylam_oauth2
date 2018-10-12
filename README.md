@@ -12,7 +12,7 @@ This project uses [Passportjs](http://www.passportjs.org/) package for authentic
 - [Express](http://expressjs.com/)
 - [Typescript](https://www.typescriptlang.org/)
 
-## Authentication stategies (will be update daily)
+## Authentication stategies (will be updated daily)
 - JWT
 - HeaderAPIKey
 - Twitter stategy (testing)
